@@ -1,13 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { apiService } from '../../services/api'
 import { Building2, Users, FileText, Plus, Edit2, Trash2, Loader2, Layers, Search, Filter, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export default function Settings() {
   const [companies, setCompanies] = useState([])
-  const [divisions, setDivisions] = useState([])
   const [departments, setDepartments] = useState([])
-  const [levels, setLevels] = useState([])
   const [templates, setTemplates] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('companies')
@@ -45,52 +43,7 @@ export default function Settings() {
     loadData()
   }, [])
 
-  useEffect(() => {
-    if (activeTab === 'divisions') {
-      applyFilters()
-    }
-  }, [filters])
-
-  const loadData = async () => {
-    setLoading(true)
-    try {
-      const [companiesRes, deptsRes, levelsRes] = await Promise.all([
-        apiService.getCompanies(),
-        apiService.getDepartments(),
-        apiService.getJobLevels()
-      ])
-      
-      setCompanies(companiesRes.data)
-      
-      // Separate divisions and departments
-      const allDepts = deptsRes.data
-      const divs = allDepts.filter(d => d.code.includes('DIV') || d.name.toLowerCase().includes('divisi'))
-      const depts = allDepts.filter(d => !d.code.includes('DIV') && !d.name.toLowerCase().includes('divisi'))
-      
-      setDivisions(divs)
-      setDepartments(allDepts)
-      setLevels(levelsRes.data)
-      
-      try {
-        const templatesRes = await apiService.getTemplates()
-        setTemplates(templatesRes.data)
-      } catch (error) {
-        setTemplates([{
-          id: 'default',
-          name: 'ATT Standard Template',
-          description: 'Default job description template',
-          isDefault: true
-        }])
-      }
-    } catch (error) {
-      console.error('Error loading settings:', error)
-      toast.error('Failed to load settings')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     let filtered = [...departments]
     
     if (filters.companyId) {
@@ -111,6 +64,46 @@ export default function Settings() {
     }
     
     return filtered
+  }, [departments, filters])
+
+  useEffect(() => {
+    if (activeTab === 'divisions') {
+      applyFilters()
+    }
+  }, [filters, activeTab, applyFilters])
+
+  const loadData = async () => {
+    setLoading(true)
+    try {
+      const [companiesRes, deptsRes] = await Promise.all([
+        apiService.getCompanies(),
+        apiService.getDepartments(),
+      ])
+      
+      setCompanies(companiesRes.data)
+      
+      // Separate divisions and departments
+      const allDepts = deptsRes.data
+      
+      setDepartments(allDepts)
+      
+      try {
+        const templatesRes = await apiService.getTemplates()
+        setTemplates(templatesRes.data)
+      } catch {
+        setTemplates([{
+          id: 'default',
+          name: 'ATT Standard Template',
+          description: 'Default job description template',
+          isDefault: true
+        }])
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error)
+      toast.error('Failed to load settings')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const clearFilters = () => {
@@ -146,7 +139,7 @@ export default function Settings() {
       setEditingCompany(null)
       setCompanyForm({ code: '', name: '', description: '', isActive: true })
       loadData()
-    } catch (error) {
+    } catch {
       toast.error('Failed to update company')
     }
   }
@@ -203,7 +196,7 @@ export default function Settings() {
       setEditingDivDept(null)
       setDivDeptForm({ type: 'division', companyId: '', code: '', name: '', description: '', isActive: true })
       loadData()
-    } catch (error) {
+    } catch {
       toast.error('Failed to update')
     }
   }

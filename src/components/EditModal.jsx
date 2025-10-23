@@ -50,7 +50,7 @@ export default function EditModal({ jobDesc, onClose, onSaved }) {
       toast.success('Job description updated!', { id: toastId })
       onSaved()
       onClose()
-    } catch (error) {
+    } catch {
       toast.error('Failed to save changes', { id: toastId })
     } finally {
       setSaving(false)

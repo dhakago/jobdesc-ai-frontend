@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { apiService } from '../../services/api'
 import { Search, Filter, Download, Eye, Edit2, Trash2, CheckCircle, XCircle, RefreshCw, Sparkles, Upload, FileText, FileDown, MoreVertical } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -25,50 +25,34 @@ export default function Library() {
   const [showEdit, setShowEdit] = useState(false)
   const [showBulkUpload, setShowBulkUpload] = useState(false)
 
-  useEffect(() => {
-    loadCompanies()
-    loadLevels()
-    loadJobDescriptions()
-  }, [])
-
-  useEffect(() => {
-    if (filters.companyId) {
-      loadDepartments(filters.companyId)
-    }
-  }, [filters.companyId])
-
-  useEffect(() => {
-    loadJobDescriptions()
-  }, [filters])
-
-  const loadCompanies = async () => {
+  const loadCompanies = useCallback(async () => {
     try {
       const res = await apiService.getCompanies()
       setCompanies(res.data)
-    } catch (error) {
-      console.error('Error loading companies:', error)
+    } catch (_error) {
+      console.error('Error loading companies:', _error)
     }
-  }
+  }, [])
 
-  const loadDepartments = async (companyId) => {
+  const loadDepartments = useCallback(async (companyId) => {
     try {
       const res = await apiService.getDepartments(companyId)
       setDepartments(res.data)
-    } catch (error) {
-      console.error('Error loading departments:', error)
+    } catch (_error) {
+      console.error('Error loading departments:', _error)
     }
-  }
+  }, [])
 
-  const loadLevels = async () => {
+  const loadLevels = useCallback(async () => {
     try {
       const res = await apiService.getJobLevels()
       setLevels(res.data)
-    } catch (error) {
-      console.error('Error loading levels:', error)
+    } catch (_error) {
+      console.error('Error loading levels:', _error)
     }
-  }
+  }, [])
 
-  const loadJobDescriptions = async () => {
+  const loadJobDescriptions = useCallback(async () => {
     setLoading(true)
     try {
       const params = { limit: 100 }
@@ -80,12 +64,28 @@ export default function Library() {
 
       const res = await apiService.getJobDescriptions(params)
       setJobDescs(res.data.data || [])
-    } catch (error) {
+    } catch {
       toast.error('Failed to load job descriptions')
     } finally {
       setLoading(false)
     }
-  }
+  }, [filters])
+
+  useEffect(() => {
+    loadCompanies()
+    loadLevels()
+    loadJobDescriptions()
+  }, [loadCompanies, loadLevels, loadJobDescriptions])
+
+  useEffect(() => {
+    if (filters.companyId) {
+      loadDepartments(filters.companyId)
+    }
+  }, [filters.companyId, loadDepartments])
+
+  useEffect(() => {
+    loadJobDescriptions()
+  }, [loadJobDescriptions])
 
   const handleFilterChange = (e) => {
     setFilters({
@@ -99,7 +99,7 @@ export default function Library() {
       const res = await apiService.getJobDescriptionById(id)
       setSelectedJob(res.data.data)
       setShowDetail(true)
-    } catch (error) {
+    } catch {
       toast.error('Failed to load details')
     }
   }
@@ -109,26 +109,26 @@ export default function Library() {
       const res = await apiService.getJobDescriptionById(id)
       setSelectedJob(res.data.data)
       setShowEdit(true)
-    } catch (error) {
+    } catch {
       toast.error('Failed to load job description')
     }
   }
 
-  const handleApprove = async (id, jobCode) => {
-    if (!confirm(`Approve job description ${jobCode}?`)) return
+  const handleApprove = async (id) => {
+    if (!confirm(`Approve job description?`)) return
 
     const toastId = toast.loading('Approving...')
     try {
       await apiService.approveJobDescription(id, 'Admin')
       toast.success('Job description approved!', { id: toastId })
       loadJobDescriptions()
-    } catch (error) {
+    } catch {
       toast.error('Failed to approve', { id: toastId })
     }
   }
 
-  const handleReject = async (id, jobCode) => {
-    const reason = prompt(`Reject ${jobCode}? Enter reason:`)
+  const handleReject = async (id) => {
+    const reason = prompt(`Reject job description? Enter reason:`)
     if (!reason) return
 
     const toastId = toast.loading('Rejecting...')
@@ -136,25 +136,25 @@ export default function Library() {
       await apiService.rejectJobDescription(id, reason)
       toast.success('Job description rejected', { id: toastId })
       loadJobDescriptions()
-    } catch (error) {
+    } catch {
       toast.error('Failed to reject', { id: toastId })
     }
   }
 
-  const handleDelete = async (id, jobCode) => {
-    if (!confirm(`Archive job description ${jobCode}?`)) return
+  const handleDelete = async (id) => {
+    if (!confirm(`Archive job description?`)) return
 
     const toastId = toast.loading('Archiving...')
     try {
       await apiService.deleteJobDescription(id)
       toast.success('Job description archived!', { id: toastId })
       loadJobDescriptions()
-    } catch (error) {
+    } catch {
       toast.error('Failed to archive', { id: toastId })
     }
   }
 
-  const handleExportPDF = (id, jobCode) => {
+  const handleExportPDF = (id) => {
     toast.loading('Generating PDF...', { id: 'export' })
     
     // Open in new window
@@ -166,7 +166,7 @@ export default function Library() {
     }, 500)
   }
 
-  const handleExportDOCX = (id, jobCode) => {
+  const handleExportDOCX = (id) => {
     toast.loading('Generating DOCX...', { id: 'export' })
     
     // Open in new window

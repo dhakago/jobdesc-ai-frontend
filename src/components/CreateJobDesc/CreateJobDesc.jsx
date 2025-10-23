@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { apiService } from '../../services/api'
 import { FileText, Sparkles, Loader2, AlertCircle, CheckCircle, Building2, Calendar, Clock, Eye } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -23,6 +23,11 @@ export default function CreateJobDesc({ onNavigateToSettings }) {
   const [similarJobs, setSimilarJobs] = useState([])
   const [showResults, setShowResults] = useState(false)
 
+  const loadDepartmentsByCompany = useCallback((companyId) => {
+    const filtered = allDepartments.filter(d => d.companyId === companyId && d.isActive)
+    setDepartments(filtered)
+  }, [allDepartments])
+
   useEffect(() => {
     loadMasterData()
   }, [])
@@ -34,7 +39,7 @@ export default function CreateJobDesc({ onNavigateToSettings }) {
       setDepartments([])
       setFormData(prev => ({ ...prev, departemen: '' }))
     }
-  }, [formData.companyId])
+  }, [formData.companyId, loadDepartmentsByCompany])
 
   const loadMasterData = async () => {
     try {
@@ -51,11 +56,6 @@ export default function CreateJobDesc({ onNavigateToSettings }) {
       console.error('Error loading master data:', error)
       toast.error('Failed to load master data')
     }
-  }
-
-  const loadDepartmentsByCompany = (companyId) => {
-    const filtered = allDepartments.filter(d => d.companyId === companyId && d.isActive)
-    setDepartments(filtered)
   }
 
   const handleChange = (e) => {
@@ -107,7 +107,7 @@ export default function CreateJobDesc({ onNavigateToSettings }) {
       toast.success('Template loaded! Redirecting to edit...', { id: toastId })
       // Here you can redirect to edit page or open modal
       console.log('Template loaded:', response.data.data)
-    } catch (error) {
+    } catch {
       toast.error('Failed to load template', { id: toastId })
     }
   }

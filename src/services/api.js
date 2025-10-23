@@ -8,7 +8,7 @@ const API_BASE_URL = isDev
   ? 'http://localhost:3000' // untuk local development
   : import.meta.env.VITE_API_URL; // untuk production (Vercel)
 
-console.log('[API BASE URL]:', API_BASE_URL); // optional untuk debug
+// console.log('[API BASE URL]:', API_BASE_URL); // debug only
 
 // ✅ Axios instance (dengan prefix /api)
 const api = axios.create({

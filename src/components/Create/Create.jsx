@@ -35,7 +35,7 @@ export default function Create() {
     try {
       const res = await apiService.getCompanies()
       setCompanies(res.data)
-    } catch (error) {
+    } catch {
       toast.error('Failed to load companies')
     }
   }
@@ -44,7 +44,7 @@ export default function Create() {
     try {
       const res = await apiService.getDepartments(companyId)
       setDepartments(res.data)
-    } catch (error) {
+    } catch {
       toast.error('Failed to load departments')
     }
   }
@@ -53,7 +53,7 @@ export default function Create() {
     try {
       const res = await apiService.getJobLevels()
       setLevels(res.data)
-    } catch (error) {
+    } catch {
       toast.error('Failed to load levels')
     }
   }
@@ -88,7 +88,7 @@ export default function Create() {
       } else {
         toast.success('No similar jobs found. Ready to generate new one!')
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to check similarity')
     } finally {
       setChecking(false)
@@ -105,7 +105,7 @@ export default function Create() {
     const toastId = toast.loading('Generating with AI...')
 
     try {
-      const res = await apiService.generateJobDescription(formData)
+      await apiService.generateJobDescription(formData)
       toast.success('Job description generated!', { id: toastId })
       
       // Reset form
