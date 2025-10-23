@@ -18,6 +18,27 @@ const api = axios.create({
   },
 });
 
+// Attach session header for mutating requests so backend auth middleware passes
+const SESSION_SECRET = import.meta.env.VITE_SESSION_SECRET;
+
+api.interceptors.request.use((config) => {
+  const method = (config.method || '').toLowerCase();
+  const isReadOnly = method === '' || method === 'get' || method === 'head' || method === 'options';
+
+  if (!isReadOnly && SESSION_SECRET) {
+    if (typeof config.headers?.set === 'function') {
+      config.headers.set('x-session-secret', SESSION_SECRET);
+    } else {
+      config.headers = {
+        ...config.headers,
+        'x-session-secret': SESSION_SECRET,
+      };
+    }
+  }
+
+  return config;
+});
+
 export const apiService = {
   // -------------------------------
   // 📊 Dashboard
