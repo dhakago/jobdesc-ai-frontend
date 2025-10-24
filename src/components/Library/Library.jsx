@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { apiService } from '../../services/api'
+import api from '../../services/api'
 import { Search, Filter, Download, Eye, Edit2, Trash2, CheckCircle, XCircle, RefreshCw, Sparkles, Upload, FileText, FileDown, MoreVertical } from 'lucide-react'
 import toast from 'react-hot-toast'
 import DetailModal from '../DetailModal'
@@ -157,9 +158,9 @@ export default function Library() {
   const handleExportPDF = (id) => {
     toast.loading('Generating PDF...', { id: 'export' })
     
-    // Open in new window
-    const url = `http://localhost:3000/api/job-descriptions/${id}/export/pdf`
-    window.open(url, '_blank')
+  // Open in new window (use configured API base URL)
+  const url = `${api.defaults.baseURL.replace(/\/api$/, '')}/api/job-descriptions/${id}/export/pdf`
+  window.open(url, '_blank')
     
     setTimeout(() => {
       toast.success('PDF opened in new tab!', { id: 'export' })
@@ -169,9 +170,9 @@ export default function Library() {
   const handleExportDOCX = (id) => {
     toast.loading('Generating DOCX...', { id: 'export' })
     
-    // Open in new window
-    const url = `http://localhost:3000/api/job-descriptions/${id}/export/docx`
-    window.open(url, '_blank')
+  // Open in new window (use configured API base URL)
+  const url = `${api.defaults.baseURL.replace(/\/api$/, '')}/api/job-descriptions/${id}/export/docx`
+  window.open(url, '_blank')
     
     setTimeout(() => {
       toast.success('DOCX download started!', { id: 'export' })

@@ -98,6 +98,20 @@ export const apiService = {
   },
 
   // -------------------------------
+  // 📦 Bulk Upload
+  // -------------------------------
+  // Uses multipart/form-data to upload Word files to the server
+  uploadWordFiles: (formData) =>
+    api.post('/bulk-upload/process', formData, {
+      headers: {
+        // Let axios set the proper boundary; setting multipart/form-data is enough
+        'Content-Type': 'multipart/form-data'
+      },
+      // increase timeout for large uploads if needed
+      timeout: 5 * 60 * 1000
+    }),
+
+  // -------------------------------
   // 🧩 Templates
   // -------------------------------
   getTemplates: () => api.get('/templates'),

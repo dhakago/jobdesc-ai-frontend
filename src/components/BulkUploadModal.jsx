@@ -59,17 +59,13 @@ export default function BulkUploadModal({ onClose, onSuccess }) {
     formData.append('useAI', useAI)
 
     try {
-      const response = await fetch('http://localhost:3000/api/bulk-upload/word-files', {
-        method: 'POST',
-        body: formData
-      })
+      const res = await apiService.uploadWordFiles(formData)
+      const data = res.data
 
-      const data = await response.json()
-      
-      if (response.ok) {
+      if (res.status >= 200 && res.status < 300) {
         setResults(data.results)
         toast.success(data.message)
-        
+
         if (data.results.failed.length === 0) {
           setTimeout(() => {
             onSuccess()
@@ -81,7 +77,8 @@ export default function BulkUploadModal({ onClose, onSuccess }) {
       }
     } catch (error) {
       console.error('Upload error:', error)
-      toast.error('Upload failed: ' + error.message)
+      const msg = error?.response?.data?.error || error.message || 'Upload failed'
+      toast.error('Upload failed: ' + msg)
     } finally {
       setUploading(false)
     }
